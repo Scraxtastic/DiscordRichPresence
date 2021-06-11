@@ -3,7 +3,10 @@
 This is my modified version of the Custom Discord Rich Presence (Custom Discord RPC) software. 
 (This software works on windows, but i didn't test it for Linux yet)
 
-
+## Requirements
+- `Node.js` has to be installed.
+- `NPM` (Node Package Manager) has to be installed
+- `npm install` must've been executed
 
 ## Start the software
 
