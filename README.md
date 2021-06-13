@@ -8,6 +8,15 @@ This is my modified version of the Custom Discord Rich Presence (Custom Discord 
 - `NPM` (Node Package Manager) has to be installed
 - `npm install` must've been executed
 
+## Modify the software for the own purposes
+
+The values in the region between the 2 Important comments may be edited without impact on the logic.
+The `defaultAppId` should be filled with an existing app, because it is used as a fallback appid. 
+The software might not work as intended if this value is `null`, `undefined` or wrong.
+
+The second interesting part is `statusContentList`. 
+You can add values with the given patterns. It should include atleast 1 value.
+
 ## Start the software
 
 Navigate to the folder of the `Discord Rich Presence` repository.
@@ -30,3 +39,6 @@ The batch file `startDiscordStatusForever.bat` already includes the startup comm
 Open the autostart folder. For that press `Win+R` and type in `shell:startup`, confirm with `Enter`.
 Click on `New` and add a `shortcut`. Insert the path of the `startDiscordStatusForever.bat` file.
 The PC should start the software automagically, as soon as your PC starts.
+
+
+## Have fun using the discord RPC tool :D
