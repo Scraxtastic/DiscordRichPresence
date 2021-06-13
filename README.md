@@ -40,5 +40,9 @@ Open the autostart folder. For that press `Win+R` and type in `shell:startup`, c
 Click on `New` and add a `shortcut`. Insert the path of the `startDiscordStatusForever.bat` file.
 The PC should start the software automagically, as soon as your PC starts.
 
+## Stopping the processes
+
+You can use `taskkill /im node.exe -f` to stop all node processes. 
+It could trigger side effects.
 
 ## Have fun using the discord RPC tool :D
