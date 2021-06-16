@@ -1,5 +1,6 @@
 var rpc = require("discord-rpc")
-let client = new rpc.Client({ transport: 'ipc' })
+let client;
+// client = new rpc.Client({ transport: 'ipc' })
 let clientConnected = false;
 
 /**
@@ -27,12 +28,12 @@ const loggingMode = loggingOptions.inConsole;
 /**
  * Refresh interval in seconds
  */
-const refreshTime = 10;
+const refreshTime = 15;
 
 /**
  * this needs to be filled. This is used as a fallback, if no appId is given in the statusConentListItem
  */
-const defaultAppId = "852697412421287946";
+const defaultAppId = "853647292601991188";
 
 const defaultImage = "scraxicon";
 
@@ -51,14 +52,20 @@ const forceChange = false;
  *  text: string
  *  image: string
  *  buttons: [{label: string, url: string}]
- *  appId: string
+ *  appId: string {currently not supported}
  * }
  */
 const statusContentList = [
     { details: "Not giving up", text: "Never gonna let you down", image: "scraxicon", buttons: [{ label: "Important Video", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }] },
-    { details: "Baiting people", text: "Baiting you!", image: "scraxicon", buttons: [{ label: "Bait", url: "https://youtu.be/d1YBv2mWll0" }] },
+    { details: "Baiting people", text: "Baiting you!", image: "scraxicon", image: "sendnudes", buttons: [{ label: "Bait", url: "https://youtu.be/d1YBv2mWll0" }] },
     { details: "Working hard", text: "Actually not", image: "scraxicon" },
-    { details: "Klicking zirkles", text: "Hmm, what am i doing here?" }
+    { details: "Hungry!", text: "You should eat donuts", image: "donuts" },
+    { details: "MEOW!", text: "NYA!", image: "cat" },
+    { details: "Bugs are awful", text: "why do i have bugs here? :(", image: "programming_bug" },
+    { details: "F!!", text: "F!!!", image: "programming_f", appId: "852680799799214080" },
+    { details: "Sliding...", text: "Sliding down", image: "slide", appId: "852680799799214080" },
+    { details: "WTF!", text: "WTF!", image: "wtf", appId: "852680799799214080" },
+
 ]
 
 
@@ -131,17 +138,45 @@ const updateStatus = () => {
     })
 }
 
+let lastTime = new Date().getTime();
+
 /**
  * Tries to login into the Application
  * @param {string} appId 
  * @returns 
  */
-const loginTo = (appId) => {
+const loginTo = async (appId) => {
+    if (client && client.transport) {
+        const getMethods = (obj) => {
+            let properties = new Set()
+            let currentObj = obj
+            do {
+                Object.getOwnPropertyNames(currentObj).map(item => properties.add(item))
+            } while ((currentObj = Object.getPrototypeOf(currentObj)))
+            return [...properties.keys()].filter(item => typeof obj[item] === 'function')
+        }
+        // console.log(getMethods(client.transport.socket));
+        // console.log(client.transport.socket.address());
+        log("Destroying current Client");
+        // console.log("socket", client.transport.socket);
+        // await client.transport.removeAllListeners();
+        // await client.transport.socket.removeAllListeners();
+        // await client.transport.socket.end();
+        // await client.transport.socket.destroy();
+        // client._connectPromise = undefined;
+        // console.log("transport", client.transport);
+        // await client.destroy();
+    }
+    if (!client) {
+        log("Creating new Client.");
+        client = new rpc.Client({ transport: 'ipc' });
+    }
     log("Logging in " + appId);
-    // client = new rpc.Client({ transport: 'ipc' })
-    return client.login({ clientId: appId }).catch((error) => {
+    log(new Date().getTime() - lastTime);
+    lastTime = new Date().getTime();
+    return await client.login({ clientId: appId }).catch((error) => {
         log(`Failed to login with the applicationID '${appId}'.`);
-        console.error(error);
+        // console.error(error);
     })
 }
 
@@ -153,10 +188,13 @@ const loginTo = (appId) => {
  * @returns 
  */
 const loginIfNeeded = async (appId) => {
-    if (appId == activeAppId && activeAppId == defaultAppId) {
+    if (appId == activeAppId) {
         return;
     }
     if (!appId) {
+        if (activeAppId == defaultAppId) {
+            return;
+        }
         activeAppId = defaultAppId;
     }
     if (appId) {
@@ -165,9 +203,13 @@ const loginIfNeeded = async (appId) => {
     if (client && clientConnected) {
         // log("Destroying " + activeAppId);
     }
+    //TODO REWORK Shall always use default rn
+    activeAppId = defaultAppId;
     const activeAppLogin = await loginTo(activeAppId);
+    console.log("activeAppLogin", activeAppLogin);
 
     if (!activeAppLogin) {
+        log(`Failed to Login to ${activeAppId}. Trying ${defaultAppId}.`);
         activeAppId = defaultAppId;
         await loginTo(activeAppId);
     }
@@ -191,11 +233,11 @@ const update = async () => {
 /**
  * updates the application and status details after the given refreshtime
  */
-const start = () => {
+const start = async () => {
     //needed for instant start
-    update();
-    setInterval(() => {
-        update();
+    await update();
+    setInterval(async () => {
+        await update();
     }, refreshTime * 1000);
 }
 // Initially starts the RPC Software
