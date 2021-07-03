@@ -2,6 +2,7 @@ var rpc = require("discord-rpc")
 let client;
 // client = new rpc.Client({ transport: 'ipc' })
 let clientConnected = false;
+let corrupted = false;
 
 /**
  * Logging in file is not yet implemented. It is used as a placeholder
@@ -130,6 +131,17 @@ const getActivity = ({ details, text, buttons, image }) => {
  * updates the Status
  */
 const updateStatus = () => {
+    if (!client?.transport?.socket) {
+        console.debug(client);
+        corrupted = true;
+        console.log("CORRUPTED");
+    } else {
+        console.log("NOT CORRUPTED");
+    }
+    if (corrupted) {
+        log("Current Client is corrupted. Not setting the status");
+        return;
+    }
     const currentStatusContent = statusContentList[currentIndex];
     log("Setting status to" + JSON.stringify(currentStatusContent));
     client.request('SET_ACTIVITY', {
@@ -146,30 +158,32 @@ let lastTime = new Date().getTime();
  * @returns 
  */
 const loginTo = async (appId) => {
-    if (client && client.transport) {
-        const getMethods = (obj) => {
-            let properties = new Set()
-            let currentObj = obj
-            do {
-                Object.getOwnPropertyNames(currentObj).map(item => properties.add(item))
-            } while ((currentObj = Object.getPrototypeOf(currentObj)))
-            return [...properties.keys()].filter(item => typeof obj[item] === 'function')
-        }
-        // console.log(getMethods(client.transport.socket));
-        // console.log(client.transport.socket.address());
-        log("Destroying current Client");
-        // console.log("socket", client.transport.socket);
-        // await client.transport.removeAllListeners();
-        // await client.transport.socket.removeAllListeners();
-        // await client.transport.socket.end();
-        // await client.transport.socket.destroy();
-        // client._connectPromise = undefined;
-        // console.log("transport", client.transport);
-        // await client.destroy();
-    }
-    if (!client) {
+    //TODO destroy to be able to connect to another application
+    // if (client && client.transport) {
+    //     const getMethods = (obj) => {
+    //         let properties = new Set()
+    //         let currentObj = obj
+    //         do {
+    //             Object.getOwnPropertyNames(currentObj).map(item => properties.add(item))
+    //         } while ((currentObj = Object.getPrototypeOf(currentObj)))
+    //         return [...properties.keys()].filter(item => typeof obj[item] === 'function')
+    //     }
+    //     // console.log(getMethods(client.transport.socket));
+    //     // console.log(client.transport.socket.address());
+    //     log("Destroying current Client");
+    //     // console.log("socket", client.transport.socket);
+    //     // await client.transport.removeAllListeners();
+    //     // await client.transport.socket.removeAllListeners();
+    //     // await client.transport.socket.end();
+    //     // await client.transport.socket.destroy();
+    //     // client._connectPromise = undefined;
+    //     // console.log("transport", client.transport);
+    //     // await client.destroy();
+    // }
+    if (!client || corrupted) {
         log("Creating new Client.");
         client = new rpc.Client({ transport: 'ipc' });
+        corrupted = false;
     }
     log("Logging in " + appId);
     log(new Date().getTime() - lastTime);
@@ -188,21 +202,21 @@ const loginTo = async (appId) => {
  * @returns 
  */
 const loginIfNeeded = async (appId) => {
-    if (appId == activeAppId) {
-        return;
-    }
-    if (!appId) {
-        if (activeAppId == defaultAppId) {
-            return;
-        }
-        activeAppId = defaultAppId;
-    }
-    if (appId) {
-        activeAppId = appId;
-    }
-    if (client && clientConnected) {
-        // log("Destroying " + activeAppId);
-    }
+    // if (appId == activeAppId) {
+    //     return;
+    // }
+    // if (!appId) {
+    //     if (activeAppId == defaultAppId) {
+    //         return;
+    //     }
+    //     activeAppId = defaultAppId;
+    // }
+    // if (appId) {
+    //     activeAppId = appId;
+    // }
+    // if (client && clientConnected) {
+    //     // log("Destroying " + activeAppId);
+    // }
     //TODO REWORK Shall always use default rn
     activeAppId = defaultAppId;
     const activeAppLogin = await loginTo(activeAppId);
@@ -220,14 +234,18 @@ const loginIfNeeded = async (appId) => {
  * updates the application and status details
  */
 const update = async () => {
-    const newIndex = Number.parseInt(Math.random() * statusContentList.length);
-    // TOODO forceChange
-    // if (!forceChange)
-    //     log("The current run has no changes. Waiting for next run.");
-    if (newIndex == currentIndex) return;
-    currentIndex = newIndex;
-    await loginIfNeeded(statusContentList[currentIndex].appId);
-    updateStatus();
+    try {
+        const newIndex = Number.parseInt(Math.random() * statusContentList.length);
+        // TOODO forceChange
+        // if (!forceChange)
+        //     log("The current run has no changes. Waiting for next run.");
+        if (newIndex == currentIndex) return;
+        currentIndex = newIndex;
+        await loginIfNeeded(statusContentList[currentIndex].appId);
+        updateStatus();
+    } catch (error) {
+        console.error("myError", error);
+    }
 }
 
 /**
