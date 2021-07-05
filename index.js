@@ -1,4 +1,8 @@
 var rpc = require("discord-rpc")
+const fs = require('fs');
+
+let rawdata = fs.readFileSync('config.json');
+let config = JSON.parse(rawdata);
 let client;
 // client = new rpc.Client({ transport: 'ipc' })
 let clientConnected = false;
@@ -29,19 +33,19 @@ const loggingMode = loggingOptions.inConsole;
 /**
  * Refresh interval in seconds
  */
-const refreshTime = 15;
+const refreshTime = config.refreshTime;
 
 /**
  * this needs to be filled. This is used as a fallback, if no appId is given in the statusConentListItem
  */
-const defaultAppId = "853647292601991188";
+const defaultAppId = config.defaultAppId;
 
-const defaultImage = "scraxicon";
+const defaultImage = config.defaultImage;
 
 /**
  * TODO Forcechange if the random number is equal to the current index
  */
-const forceChange = false;
+const forceChange = config.forceChange;
 
 /**
  * Insert your details, texts, images and buttons, that shall be shown in the discord client here. 
@@ -56,18 +60,7 @@ const forceChange = false;
  *  appId: string {currently not supported}
  * }
  */
-const statusContentList = [
-    { details: "Not giving up", text: "Never gonna let you down", image: "scraxicon", buttons: [{ label: "Important Video", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }] },
-    { details: "Baiting people", text: "Baiting you!", image: "scraxicon", image: "sendnudes", buttons: [{ label: "Bait", url: "https://youtu.be/d1YBv2mWll0" }] },
-    { details: "Working hard", text: "Actually not", image: "scraxicon" },
-    { details: "Hungry!", text: "You should eat donuts", image: "donuts" },
-    { details: "MEOW!", text: "NYA!", image: "cat" },
-    { details: "Bugs are awful", text: "why do i have bugs here? :(", image: "programming_bug" },
-    { details: "F!!", text: "F!!!", image: "programming_f", appId: "852680799799214080" },
-    { details: "Sliding...", text: "Sliding down", image: "slide", appId: "852680799799214080" },
-    { details: "WTF!", text: "WTF!", image: "wtf", appId: "852680799799214080" },
-
-]
+const statusContentList = config.statusContentList;
 
 
 /**
@@ -220,7 +213,6 @@ const loginIfNeeded = async (appId) => {
     //TODO REWORK Shall always use default rn
     activeAppId = defaultAppId;
     const activeAppLogin = await loginTo(activeAppId);
-    console.log("activeAppLogin", activeAppLogin);
 
     if (!activeAppLogin) {
         log(`Failed to Login to ${activeAppId}. Trying ${defaultAppId}.`);
