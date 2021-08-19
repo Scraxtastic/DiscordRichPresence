@@ -1,4 +1,5 @@
-var rpc = require("discord-rpc")
+var rpc = require("discord-rpc");
+const { RPCCommands } = require("discord-rpc/src/constants");
 const fs = require('fs');
 
 let rawdata = fs.readFileSync('config.json');
@@ -7,6 +8,7 @@ let client;
 // client = new rpc.Client({ transport: 'ipc' })
 let clientConnected = false;
 let corrupted = false;
+const startTime = new Date();
 
 /**
  * Logging in file is not yet implemented. It is used as a placeholder
@@ -109,6 +111,7 @@ const getActivity = ({ details, text, buttons, image }) => {
                 large_text: text || "No text given..." // this will show as "Playing <Status>" from the outisde
             },
             buttons: buttons,
+            timestamps: { start: Math.round(startTime.getTime()) },
         }
     }
     return {
@@ -116,7 +119,8 @@ const getActivity = ({ details, text, buttons, image }) => {
         assets: {
             large_image: image || defaultImage, //Image name that is set in the application
             large_text: text || "No text given..." // this will show as "Playing <Status>" from the outisde
-        }
+        },
+        timestamps: { start: Math.round(startTime.getTime()) },
     }
 }
 
@@ -137,7 +141,11 @@ const updateStatus = () => {
     }
     const currentStatusContent = statusContentList[currentIndex];
     log("Setting status to" + JSON.stringify(currentStatusContent));
-    client.request('SET_ACTIVITY', {
+    console.log(JSON.stringify(client.user));
+    // console.log("client", client == true, client.user, client.user.setActivity);
+    // client?.user?.
+    // setActivity('TEST', { type: "WATCHING" })
+    client.request(RPCCommands.SET_ACTIVITY, {
         pid: process.pid,
         activity: getActivity(currentStatusContent)
     })
