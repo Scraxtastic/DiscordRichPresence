@@ -6,9 +6,10 @@ let rawdata = fs.readFileSync('config.json');
 let config = JSON.parse(rawdata);
 let client;
 // client = new rpc.Client({ transport: 'ipc' })
-let clientConnected = false;
+// let clientConnected = false;
 let corrupted = false;
-const startTime = new Date();
+let random = (min, max) => Math.random() * (max - min) + min;
+const startTime = new Date(new Date().getTime() - (1000 * 60 * 60 * random(5,15)));
 
 /**
  * Logging in file is not yet implemented. It is used as a placeholder
@@ -102,7 +103,7 @@ const log = (logMessage) => {
  * @param {details: string, text: string, buttons: [{label: string, url: string}], image: string} param0 
  * @returns the activity
  */
-const getActivity = ({ details, text, buttons, image }) => {
+const getActivity = ({ details, text, buttons, image, timestamp}) => {
     if (buttons) {
         return {
             details: details || "no details given...",
@@ -111,7 +112,7 @@ const getActivity = ({ details, text, buttons, image }) => {
                 large_text: text || "No text given..." // this will show as "Playing <Status>" from the outisde
             },
             buttons: buttons,
-            timestamps: { start: Math.round(startTime.getTime()) },
+            timestamps: config.timestamp? { start: Math.round(startTime.getTime()) }: {},
         }
     }
     return {
@@ -120,7 +121,7 @@ const getActivity = ({ details, text, buttons, image }) => {
             large_image: image || defaultImage, //Image name that is set in the application
             large_text: text || "No text given..." // this will show as "Playing <Status>" from the outisde
         },
-        timestamps: { start: Math.round(startTime.getTime()) },
+        timestamps: config.timestamp? { start: Math.round(startTime.getTime()) }: {},
     }
 }
 
